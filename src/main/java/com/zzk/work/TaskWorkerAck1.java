@@ -22,15 +22,14 @@ public class TaskWorkerAck1 {
 		Connection connection = factory.newConnection();
 		final Channel channel = connection.createChannel();
 
-		channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+		channel.queueDeclare(QUEUE_NAME, true, false, false, null);
 		System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
 		channel.basicQos(1);
 		// 回调消费消息
 		Consumer consumer = new DefaultConsumer( channel) {
 			@Override
-			public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
-					byte[] body) throws IOException {
+			public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
 				String message = new String(body, "UTF-8");
 				System.out.println(" [x] Received '" + message + "'");
 				try {
@@ -39,11 +38,12 @@ public class TaskWorkerAck1 {
 					e.printStackTrace();
 				} finally {
 			      System.out.println(" [x] Done");
-			      channel.basicAck(envelope.getDeliveryTag(), false);
+			      System.out.println(envelope.getDeliveryTag());
+			      channel.basicAck(envelope.getDeliveryTag(), true);//确认消息消费
 			    }
 			}
 		};
-		boolean autoAck = false;//打开消息确认机制
+		boolean autoAck = false;//打开手动消息确认机制关闭自动消息确认
 		channel.basicConsume(QUEUE_NAME, autoAck, consumer);
 	}
 	
